@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fitness Planner</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1>Fitness Planner</h1>
+    <div class="date-nav">
+      <button id="prevDay" aria-label="Previous day">&larr;</button>
+      <input type="date" id="currentDate">
+      <button id="nextDay" aria-label="Next day">&rarr;</button>
+      <button id="todayBtn" class="ghost">Today</button>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab active" data-tab="today">Today</button>
+    <button class="tab" data-tab="food">Food</button>
+    <button class="tab" data-tab="gym">Gym</button>
+    <button class="tab" data-tab="plan">Weekly Plan</button>
+    <button class="tab" data-tab="body">Body</button>
+    <button class="tab" data-tab="settings">Settings</button>
+  </nav>
+
+  <main>
+    <!-- TODAY -->
+    <section id="tab-today" class="panel active">
+      <div class="grid stats" id="todayStats"></div>
+      <div class="grid two">
+        <div class="card">
+          <h2>Planned workout</h2>
+          <div id="todayPlan"></div>
+        </div>
+        <div class="card">
+          <h2>Logged at the gym</h2>
+          <div id="todayGym"></div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Calories – last 14 days</h2>
+        <div id="calChart" class="chart"></div>
+      </div>
+      <div class="card">
+        <h2>Notes for the day</h2>
+        <textarea id="dayNote" rows="3" placeholder="How did today go?"></textarea>
+      </div>
+    </section>
+
+    <!-- FOOD -->
+    <section id="tab-food" class="panel">
+      <div class="card">
+        <h2>Add food</h2>
+        <form id="foodForm" class="form-grid">
+          <label>Meal
+            <select name="meal">
+              <option>Breakfast</option><option>Lunch</option>
+              <option>Dinner</option><option>Snack</option>
+            </select>
+          </label>
+          <label class="wide">Food<input name="name" required placeholder="e.g. Chicken breast 200g"></label>
+          <label>Calories<input name="kcal" type="number" min="0" step="1"></label>
+          <label>Protein (g)<input name="protein" type="number" min="0" step="0.1"></label>
+          <label>Carbs (g)<input name="carbs" type="number" min="0" step="0.1"></label>
+          <label>Fat (g)<input name="fat" type="number" min="0" step="0.1"></label>
+          <button type="submit">Add</button>
+        </form>
+        <div id="foodQuick" class="chips"></div>
+      </div>
+      <div class="card">
+        <h2>Food on <span class="dateLabel"></span></h2>
+        <div id="foodList"></div>
+      </div>
+    </section>
+
+    <!-- GYM -->
+    <section id="tab-gym" class="panel">
+      <div class="card">
+        <h2>Log a set</h2>
+        <form id="gymForm" class="form-grid">
+          <label class="wide">Exercise<input name="exercise" required list="exerciseList" placeholder="e.g. Bench press"></label>
+          <label>Sets<input name="sets" type="number" min="1" step="1" value="1"></label>
+          <label>Reps<input name="reps" type="number" min="0" step="1"></label>
+          <label><span>Weight (<span class="unitW"></span>)</span><input name="weight" type="number" min="0" step="0.5"></label>
+          <label>Duration (min)<input name="minutes" type="number" min="0" step="1" placeholder="cardio"></label>
+          <label class="wide">Notes<input name="notes" placeholder="RPE, feel, etc."></label>
+          <button type="submit">Add</button>
+        </form>
+        <datalist id="exerciseList"></datalist>
+      </div>
+      <div class="card">
+        <h2>Workout on <span class="dateLabel"></span></h2>
+        <div id="gymList"></div>
+      </div>
+      <div class="card">
+        <h2>Exercise history</h2>
+        <select id="historyExercise"></select>
+        <div id="historyChart" class="chart"></div>
+        <div id="historyTable"></div>
+      </div>
+    </section>
+
+    <!-- PLAN -->
+    <section id="tab-plan" class="panel">
+      <div class="card">
+        <h2>Weekly template</h2>
+        <p class="muted">Write what you plan to do each day. One exercise per line, e.g. <code>Squat 3x5 @ 100</code>.</p>
+        <div id="planGrid" class="plan-grid"></div>
+      </div>
+    </section>
+
+    <!-- BODY -->
+    <section id="tab-body" class="panel">
+      <div class="card">
+        <h2>Log body weight</h2>
+        <form id="bodyForm" class="form-grid">
+          <label><span>Weight (<span class="unitW"></span>)</span><input name="weight" type="number" min="0" step="0.1" required></label>
+          <label>Waist (cm)<input name="waist" type="number" min="0" step="0.1"></label>
+          <button type="submit">Save for <span class="dateLabel"></span></button>
+        </form>
+      </div>
+      <div class="card">
+        <h2>Weight trend</h2>
+        <div id="weightChart" class="chart"></div>
+        <div id="bodyList"></div>
+      </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section id="tab-settings" class="panel">
+      <div class="card">
+        <h2>Daily targets</h2>
+        <p class="muted">Set these yourself (or with your coach / dietitian). Leave blank to hide a target.</p>
+        <form id="settingsForm" class="form-grid">
+          <label>Calories<input name="kcal" type="number" min="0"></label>
+          <label>Protein (g)<input name="protein" type="number" min="0"></label>
+          <label>Carbs (g)<input name="carbs" type="number" min="0"></label>
+          <label>Fat (g)<input name="fat" type="number" min="0"></label>
+          <label>Weight unit
+            <select name="unit"><option value="kg">kg</option><option value="lb">lb</option></select>
+          </label>
+          <button type="submit">Save</button>
+        </form>
+      </div>
+      <div class="card">
+        <h2>Backup</h2>
+        <p class="muted">Data is stored only in this browser. Export regularly to keep a copy, or to move it to another device.</p>
+        <div class="row">
+          <button id="exportBtn">Export JSON</button>
+          <button id="exportCsvBtn" class="ghost">Export CSV (food + gym)</button>
+          <label class="file-btn ghost">Import JSON<input type="file" id="importFile" accept="application/json"></label>
+          <button id="wipeBtn" class="danger">Erase all data</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" hidden></div>
+  <script src="app.js"></script>
+</body>
+</html>
