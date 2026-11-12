@@ -829,7 +829,7 @@ ul.plain input[type=checkbox] { width: 22px; height: 22px; min-height: 0; accent
   const PRESETS = {
     Chest: ['Bench press', 'Incline bench press'],
     Back: ['Deadlift', 'Rows', 'Lat pulldowns', 'Dual pulley pulldown', 'Low row'],
-    Legs: ['Squats'],
+    Legs: ['Squats', 'Hip abduction', 'Hip adduction'],
     Shoulders: ['Overhead press'],
     Arms: ['Dumbbell curls'],
     Other: [],
@@ -854,7 +854,7 @@ ul.plain input[type=checkbox] { width: 22px; height: 22px; min-height: 0; accent
     chestUpper: 'Upper chest', chestLower: 'Mid & lower chest', frontDelt: 'Front delts', sideDelt: 'Side delts', rearDelt: 'Rear delts',
     biceps: 'Biceps', triceps: 'Triceps', forearms: 'Forearms', abs: 'Abs', obliques: 'Obliques',
     upperTraps: 'Upper traps', midTraps: 'Mid traps & rhomboids', lats: 'Lats', lowerBack: 'Lower back',
-    glutes: 'Glutes', quads: 'Quads', hamstrings: 'Hamstrings', calves: 'Calves',
+    glutes: 'Glutes', gluteMed: 'Side glutes (glute medius)', adductors: 'Inner thighs (adductors)', quads: 'Quads', hamstrings: 'Hamstrings', calves: 'Calves',
   };
   // 1 = main muscle for the lift, 0.5 = assisting muscle. Based on EMG studies of each lift (see the notes under the map).
   const EX_MUSCLES = {
@@ -868,6 +868,8 @@ ul.plain input[type=checkbox] { width: 22px; height: 22px; min-height: 0; accent
     'dual pulley pulldown': { lats: 1, biceps: 0.5, midTraps: 0.5 },
     'overhead press': { frontDelt: 1, sideDelt: 1, triceps: 0.5, upperTraps: 0.5, chestUpper: 0.5 },
     'dumbbell curls': { biceps: 1, forearms: 0.5 },
+    'hip abduction': { gluteMed: 1, glutes: 0.5 },
+    'hip adduction': { adductors: 1 },
   };
   // Exercises you add yourself are placed by their category.
   const CAT_MUSCLES = {
@@ -904,11 +906,11 @@ ul.plain input[type=checkbox] { width: 22px; height: 22px; min-height: 0; accent
       + path('chestUpper', 'M68,93 Q68,80 83,80 Q98,80 98,93 Z') + path('chestLower', 'M68,95 L98,95 Q98,109 83,109 Q68,109 68,95 Z')
       + poly('obliques', '72,114 85,114 85,172 76,168')
       + box('abs', 88, 113, 11, 17) + box('abs', 88, 133, 11, 17) + box('abs', 88, 153, 11, 19)
-      + ell('quads', 84, 243, 14, 40, 2));
+      + ell('quads', 82, 243, 12.5, 40, 4) + ell('adductors', 95, 224, 4.5, 22, -6));
     const back = poly('upperTraps', '100,54 124,71 100,83 76,71') + poly('midTraps', '78,76 100,87 122,76 100,127')
       + box('lowerBack', 89, 131, 9.5, 46, 4.5) + box('lowerBack', 101.5, 131, 9.5, 46, 4.5)
       + both(ell('rearDelt', 61, 80, 7.5, 11.5) + arm('triceps') + poly('lats', '72,98 87,123 87,152 76,150')
-        + ell('glutes', 85, 197, 15, 14) + ell('hamstrings', 84, 252, 13, 32) + ell('calves', 81, 328, 10, 27));
+        + ell('glutes', 86, 199, 14, 13) + ell('gluteMed', 72, 185, 8, 6.5, -25) + ell('hamstrings', 84, 252, 13, 32) + ell('calves', 81, 328, 10, 27));
     return `<g transform="translate(${ox},14)">${base}${view === 'front' ? front : back}<text x="100" y="-2" text-anchor="middle">${view.toUpperCase()}</text></g>`;
   }
   function mapDetails() {

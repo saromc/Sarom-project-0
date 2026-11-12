@@ -10,7 +10,7 @@ A private, single-user fitness planner in one file: `index.html`.
 **Tabs**
 - **Today** – calorie ring and macro bars against your targets, volume lifted, body weight, workouts this week, logging streak, a front-and-back body map of muscles hit this week, and the "Add from Claude" box.
 - **Food** – meals with calories, protein, carbs and fat, grouped by meal; one-tap re-add of recent foods.
-- **Gym** – exercises picked by category (Chest, Back, Legs, Shoulders, Arms, Other), with sets, reps and weight in lb; per-exercise history chart.
+- **Gym** – exercises picked by category (Chest, Back, Legs, Shoulders, Arms, Other), including hip abduction and hip adduction under Legs, with sets, reps and weight in lb; per-exercise history chart.
 - **Plan** – a Monday–Sunday training template that becomes a checklist on Today.
 - **Body** – body weight (lb) and waist (in) with a trend chart.
 - **Progress** – month and year results: days logged, workouts, average calories and protein, volume lifted, weight change, charts, muscle map and per-lift progress.
