@@ -290,7 +290,7 @@ ul.plain input[type=checkbox] { width: 22px; height: 22px; min-height: 0; accent
       <div class="card"><h2>Planned workout</h2><div id="todayPlan"></div></div>
       <div class="card"><h2>Logged at the gym</h2><div id="todayGym"></div></div>
     </div>
-    <div class="card"><h2>Muscles hit this week</h2><div id="weekMuscles" class="bodymap"></div></div>
+    <div class="card"><h2>Sets per muscle this week</h2><div id="weekMuscles" class="bodymap"></div></div>
     <div class="card"><h2>Calories, last 14 days</h2><div id="calChart" class="chart"></div></div>
     <div class="card">
       <h2>Notes for the day</h2>
@@ -395,7 +395,7 @@ ul.plain input[type=checkbox] { width: 22px; height: 22px; min-height: 0; accent
       </div>
     </div>
     <div class="grid stats" id="perStats"></div>
-    <div class="card"><h2>Muscles hit</h2><div id="perMuscles" class="bodymap"></div></div>
+    <div class="card"><h2>Sets per muscle, weekly average</h2><div id="perMuscles" class="bodymap"></div></div>
     <div class="card"><h2 id="perCalTitle"></h2><div id="perCal" class="chart"></div></div>
     <div class="card"><h2 id="perWeightTitle"></h2><div id="perWeight" class="chart"></div></div>
     <div class="card"><h2 id="perVolTitle"></h2><div id="perVol" class="chart"></div></div>
@@ -691,7 +691,12 @@ ul.plain input[type=checkbox] { width: 22px; height: 22px; min-height: 0; accent
       tile('Weight change', change == null ? '—' : (change > 0 ? '+' : '') + fmt(change, 1), change == null ? '' : 'lb',
         change == null ? 'needs two weigh-ins' : `${fmt(bw[0].w, 1)} → ${fmt(bw[bw.length - 1].w, 1)} lb`);
 
-    $('#perMuscles').innerHTML = bodyMapHTML(muscleLoad(dates));
+    // Weeks elapsed in the period so far, for a weekly average.
+    const pStart = isMonth ? new Date(period.y, period.m, 1) : new Date(period.y, 0, 1);
+    const pEnd = isMonth ? new Date(period.y, period.m + 1, 0) : new Date(period.y, 11, 31);
+    const upTo = Math.min(pEnd.getTime(), fromISO(todayISO()).getTime());
+    const weeks = Math.max(1, (Math.round((upTo - pStart.getTime()) / 864e5) + 1) / 7);
+    $('#perMuscles').innerHTML = bodyMapHTML(muscleLoad(dates), weeks);
 
     let cal, volData, weight;
     if (isMonth) {
@@ -917,16 +922,19 @@ ul.plain input[type=checkbox] { width: 22px; height: 22px; min-height: 0; accent
     return `<details class="bm-details"><summary>Which muscles each lift counts toward</summary><ul>${Object.values(PRESETS).flat().map((n) => {
       const map = EX_MUSCLES[n.toLowerCase()] || {};
       return `<li><b>${esc(n)}:</b> ${names(map, 1)}${names(map, 0.5) ? `. Assisting: ${names(map, 0.5)}` : ''}</li>`;
-    }).join('')}</ul><p>Based on published EMG (muscle-activity) studies of each lift. The full-or-half weighting is a simplification. Exercises you add yourself are placed by their category.</p></details>`;
+    }).join('')}</ul><p>Muscles per lift are based on published EMG (muscle-activity) studies. Counting weekly sets, with half credit for assisting muscles, follows the research on training volume and muscle growth: about 4 sets a week is the lowest dose linked to growth, gains keep rising past 10, and 12 to 20 is a commonly recommended range for trained lifters. Weight lifted and body size are not part of the measure, because growth is similar across light and heavy loads when sets are taken close to failure. The app cannot tell how hard a set was, so it counts every set you log. Exercises you add yourself are placed by their category.</p></details>`;
   }
-  function bodyMapHTML(load) {
+  // Shading uses a fixed scale of sets per muscle per week, the measure the hypertrophy research supports best.
+  const SETS_HOT = 20;
+  function bodyMapHTML(total, weeks = 1) {
+    const load = {};
+    for (const [m, v] of Object.entries(total)) load[m] = v / weeks;
     const hit = Object.entries(load).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
-    const max = hit.length ? hit[0][1] : 1;
-    return `<svg viewBox="0 0 420 410" role="img" aria-label="Body outline, front and back, shaded by sets per muscle">${figure(0, 'front', load, max)}${figure(220, 'back', load, max)}</svg>`
+    return `<svg viewBox="0 0 420 410" role="img" aria-label="Body outline, front and back, shaded by weekly sets per muscle">${figure(0, 'front', load, SETS_HOT)}${figure(220, 'back', load, SETS_HOT)}</svg>`
       + (hit.length
-        ? `<div class="bm-legend"><span>Fewer sets</span><i></i><span>More sets</span></div>
-           <div class="bm-list">${hit.map(([m, v]) => `<div class="macro"><div class="macro-top"><span>${MUSCLES[m]}</span><b>${fmt(v, 1)}<small> sets</small></b></div><div class="bar"><span style="width:${(v / max) * 100}%;background:${heat(v / max)}"></span></div></div>`).join('')}</div>
-           <p class="muted" style="margin:.8rem 0 0">A set counts in full for a lift's main muscles and as half for assisting muscles. Colour runs from cool (fewest sets) to warm (most sets), relative to your most-trained muscle in this period.</p>`
+        ? `<div class="bm-legend"><span>1</span><i></i><span>${SETS_HOT}+ sets a week</span></div>
+           <div class="bm-list">${hit.map(([m, v]) => `<div class="macro"><div class="macro-top"><span>${MUSCLES[m]}</span><b>${fmt(v, 1)}<small> sets/wk</small></b></div><div class="bar"><span style="width:${Math.min(100, (v / SETS_HOT) * 100)}%;background:${heat(v / SETS_HOT)}"></span></div></div>`).join('')}</div>
+           <p class="muted" style="margin:.8rem 0 0">${weeks > 1 ? `Weekly average over ${fmt(weeks, 1)} weeks. ` : ''}A set counts in full for a lift's main muscles and as half for assisting muscles. Colour is fixed: blue is a few sets a week, red is ${SETS_HOT} or more.</p>`
         : '<p class="empty" style="text-align:center">No lifting logged in this period yet.</p>') + mapDetails();
   }
 

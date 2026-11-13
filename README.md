@@ -18,4 +18,4 @@ A private, single-user fitness planner in one file: `index.html`.
 
 Units: pounds and inches for training and body measurements; grams and kcal for food.
 
-The body map's exercise-to-muscle assignments are based on published EMG studies of each lift; the full-set / half-set weighting is a simplification.
+The body map shades each muscle by sets per week on a fixed scale (blue for a few, red for 20 or more). Exercise-to-muscle assignments are based on published EMG studies; counting weekly sets, with half credit for assisting muscles, follows the research on training volume and muscle growth.
