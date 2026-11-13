@@ -159,6 +159,7 @@ td.act, th.act { position: sticky; right: 0; background: var(--card); box-shadow
 td.act button.icon { color: var(--danger); font-size: 1.05rem; min-width: 36px; }
 td.act button.icon[data-dup-gym] { color: var(--muted); }
 .file-btn { position: relative; overflow: hidden; }
+#goShot { width: 100%; }
 .file-btn input { position: absolute; inset: 0; width: 100%; height: 100%; min-height: 0; padding: 0; border: 0; opacity: 0; cursor: pointer; font-size: 0; }
 #shotNames { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; }
 #shotNames img { height: 72px; width: auto; border-radius: 8px; }
@@ -284,20 +285,7 @@ ul.plain input[type=checkbox] { width: 22px; height: 22px; min-height: 0; accent
     <div id="reportBanner" class="banner" hidden></div>
     <div class="card hero" id="todayHero"></div>
     <div class="grid stats four" id="todayStats"></div>
-    <div class="card" id="pasteCard">
-      <h2>Add from Claude</h2>
-      <p class="muted">Paste a reply from your Claude chat (a table, a meal list, a workout) or add a screenshot of it. You'll see what was found before anything is saved to <span class="dateLabel"></span>.</p>
-      <textarea id="pasteText" rows="4" placeholder="e.g. Breakfast: 3 eggs and toast, about 420 kcal, 28 g protein…"></textarea>
-      <div class="row" style="margin-top:.6rem">
-        <button id="pasteRead">Read it</button>
-        <label class="file-btn ghost" id="shotBtn">Add screenshot<input type="file" id="shotFile" accept="image/*"></label>
-        <button id="copyPrompt" class="ghost">Copy request for Claude</button>
-        <button id="pasteClear" class="ghost">Clear</button>
-      </div>
-      <p class="muted" id="shotNames" hidden></p>
-      <p class="muted" id="pasteStatus" hidden></p>
-      <div id="pastePreview" hidden></div>
-    </div>
+    <label class="file-btn" id="goShot" for="shotFile">Add food from a screenshot</label>
     <div class="grid two">
       <div class="card"><h2>Planned workout</h2><div id="todayPlan"></div></div>
       <div class="card"><h2>Logged at the gym</h2><div id="todayGym"></div></div>
@@ -312,12 +300,26 @@ ul.plain input[type=checkbox] { width: 22px; height: 22px; min-height: 0; accent
 
   <!-- FOOD -->
   <section id="tab-food" class="panel">
+    <div class="card" id="pasteCard">
+      <h2>Add from a screenshot</h2>
+      <p class="muted">Pick a screenshot of what you ate. It is read straight away, and you check the list before it is saved to <span class="dateLabel"></span>. Workouts in the screenshot are picked up too.</p>
+      <label class="file-btn" id="shotBtn" style="width:100%">Add screenshot<input type="file" id="shotFile" accept="image/*"></label>
+      <p class="muted" id="shotNames" hidden></p>
+      <p class="muted" id="pasteStatus" hidden></p>
+      <div id="pastePreview" hidden></div>
+      <details class="bm-details">
+        <summary>Or paste text instead</summary>
+        <textarea id="pasteText" rows="4" placeholder="e.g. 3 eggs and toast, about 420 kcal, 28 g protein…"></textarea>
+        <div class="row" style="margin-top:.6rem">
+          <button id="pasteRead">Read it</button>
+          <button id="copyPrompt" class="ghost">Copy request for Claude</button>
+          <button id="pasteClear" class="ghost">Clear</button>
+        </div>
+      </details>
+    </div>
     <div class="card">
       <h2>Add food</h2>
       <form id="foodForm" class="form-grid" autocomplete="off">
-        <label>Meal
-          <select name="meal" id="foodMeal"><option>Breakfast</option><option>Lunch</option><option>Dinner</option><option>Snack</option></select>
-        </label>
         <label class="wide full">Food<input name="name" id="foodName" required placeholder="e.g. Chicken breast 200 g"></label>
         <label>Calories (kcal)<input name="kcal" id="foodKcal" type="number" inputmode="decimal" min="0" step="1"></label>
         <label>Protein (g)<input name="protein" id="foodProtein" type="number" inputmode="decimal" min="0" step="0.1"></label>
@@ -796,14 +798,9 @@ ul.plain input[type=checkbox] { width: 22px; height: 22px; min-height: 0; accent
     if (!items.length) $('#foodList').innerHTML = '<p class="empty">Nothing logged yet. Add your first item above.</p>';
     else {
       let rows = '';
-      for (const meal of MEALS) {
-        const m = items.filter((f) => f.meal === meal);
-        if (!m.length) continue;
-        rows += `<tr class="group"><td>${meal}</td><td class="num">${fmt(m.reduce((a, f) => a + num(f.kcal), 0))}</td><td colspan="4"></td></tr>`;
-        rows += m.map((f) => `<tr><td class="name">${esc(f.name)}</td><td class="num">${fmt(num(f.kcal))}</td><td class="num">${fmt(num(f.protein), 1)}</td>
+      rows += items.map((f) => `<tr><td class="name">${esc(f.name)}</td><td class="num">${fmt(num(f.kcal))}</td><td class="num">${fmt(num(f.protein), 1)}</td>
           <td class="num">${fmt(num(f.carbs), 1)}</td><td class="num">${fmt(num(f.fat), 1)}</td>
           <td class="num act"><button class="icon" data-del-food="${f.id}" aria-label="Delete ${esc(f.name)}">✕</button></td></tr>`).join('');
-      }
       const t = totalsFor(currentDate);
       rows += `<tr><th>Total</th><th class="num">${fmt(t.kcal)}</th><th class="num">${fmt(t.protein, 1)}</th><th class="num">${fmt(t.carbs, 1)}</th><th class="num">${fmt(t.fat, 1)}</th><th></th></tr>`;
       $('#foodList').innerHTML = `<div class="table-wrap"><table><thead><tr><th>Food</th><th class="num">kcal</th><th class="num">P (g)</th><th class="num">C (g)</th><th class="num">F (g)</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
@@ -1052,6 +1049,7 @@ ul.plain input[type=checkbox] { width: 22px; height: 22px; min-height: 0; accent
 
   $('#weekStrip').addEventListener('click', (e) => { const b = e.target.closest('[data-date]'); if (b) setDate(b.dataset.date); });
   $('#settingsBtn').onclick = () => showTab('settings');
+  $('#goShot').addEventListener('click', () => showTab('food'));
   $$('.seg button').forEach((b) => b.addEventListener('click', () => { period.mode = b.dataset.period; renderProgress(); }));
   function shiftPeriod(n) {
     if (period.mode === 'year') period.y += n;
@@ -1083,7 +1081,7 @@ ul.plain input[type=checkbox] { width: 22px; height: 22px; min-height: 0; accent
     const d = formData(e.target);
     editDay(currentDate).food.push({ id: uid(), ...d });
     persistDay(currentDate);
-    e.target.reset(); e.target.meal.value = d.meal;
+    e.target.reset();
     renderAll(); toast('Food added');
   });
 
@@ -1145,10 +1143,10 @@ ul.plain input[type=checkbox] { width: 22px; height: 22px; min-height: 0; accent
     const ds = t.dataset;
     if (ds.delFood) { const d = editDay(currentDate); d.food = d.food.filter((f) => f.id !== ds.delFood); }
     else if (ds.quickFood != null) {
-      const f = store.recentFoods[+ds.quickFood], meal = $('#foodForm').meal.value;
+      const f = store.recentFoods[+ds.quickFood];
       const { date, ...rest } = f;
-      editDay(currentDate).food.push({ ...rest, id: uid(), meal });
-      toast(`Added ${f.name} to ${meal}`);
+      editDay(currentDate).food.push({ ...rest, id: uid() });
+      toast(`Added ${f.name}`);
     }
     else if (ds.delGym) { const d = editDay(currentDate); d.gym = d.gym.filter((g) => g.id !== ds.delGym); }
     else if (ds.dupGym) { const g = day(currentDate).gym.find((x) => x.id === ds.dupGym); editDay(currentDate).gym.push({ ...g, id: uid() }); toast('Logged again'); }
@@ -1240,13 +1238,13 @@ ul.plain input[type=checkbox] { width: 22px; height: 22px; min-height: 0; accent
   };
 
   // ---------- Add from Claude ----------
-  const SHAPE = '{"days":[{"date":"YYYY-MM-DD or null","food":[{"meal":"Breakfast|Lunch|Dinner|Snack","name":"text","kcal":number,"protein":number,"carbs":number,"fat":number}],"gym":[{"exercise":"text","sets":number,"reps":number,"weight":number,"minutes":number,"notes":"text"}],"body":{"weight":number,"waist":number} or null}],"targets":{"kcal":number,"protein":number,"carbs":number,"fat":number} or null}';
+  const SHAPE = '{"days":[{"date":"YYYY-MM-DD or null","food":[{"name":"text","kcal":number,"protein":number,"carbs":number,"fat":number}],"gym":[{"exercise":"text","sets":number,"reps":number,"weight":number,"minutes":number,"notes":"text"}],"body":{"weight":number,"waist":number} or null}],"targets":{"kcal":number,"protein":number,"carbs":number,"fat":number} or null}';
   const RULES = [
     'Numbers only: strip "~", "g", "kcal" and other units. Use null for anything not given.',
     'Only count what was actually eaten or done. Ignore "remaining" amounts, suggestions and plans.',
-    'Break the food down: list every individual food or drink as its own item, under the meal it was eaten at, with the numbers given for that item.',
+    'Break the food down: list every individual food or drink as its own item, with the numbers given for that item.',
     'If foods are named without their own numbers, still list each one, with null numbers.',
-    'Add one extra item named "Day total" (meal "Snack") holding the day totals only when totals are given and the individual items have no numbers of their own, or when no individual foods are listed at all.',
+    'Add one extra item named "Day total" holding the day totals only when totals are given and the individual items have no numbers of their own, or when no individual foods are listed at all.',
     'Never add a "Day total" item when the individual items already carry numbers: that would count the food twice.',
     'If daily targets are shown, put them in "targets".',
     'Never invent foods, exercises or numbers that are not in the source.',
@@ -1291,9 +1289,10 @@ ul.plain input[type=checkbox] { width: 22px; height: 22px; min-height: 0; accent
     setPasteStatus('Preparing screenshot…');
     shots = await Promise.all(imgs.map(shrink));
     const box = $('#shotNames');
-    box.innerHTML = shots.map((b) => `<img alt="Attached screenshot" src="${URL.createObjectURL(b)}">`).join('') + '<span>Screenshot attached. Tap Read it.</span>';
+    box.innerHTML = shots.map((b) => `<img alt="Attached screenshot" src="${URL.createObjectURL(b)}">`).join('') + '<span>Screenshot attached.</span>';
     box.hidden = false;
     setPasteStatus('');
+    $('#pasteRead').click();
   }
   $('#shotFile').addEventListener('change', (e) => { const files = [...e.target.files]; e.target.value = ''; if (files.length) addShots(files); });
   // A screenshot copied to the clipboard can also be pasted straight into the box.
@@ -1309,11 +1308,10 @@ ul.plain input[type=checkbox] { width: 22px; height: 22px; min-height: 0; accent
     if (!data || typeof data !== 'object') return null;
     const daysIn = Array.isArray(data.days) ? data.days : (data.food || data.gym || data.body) ? [data] : [];
     const n = (v) => (v == null || v === '' || isNaN(+v) ? '' : +v);
-    const meals = new Set(MEALS);
     const out = daysIn.map((d) => ({
       date: /^\d{4}-\d{2}-\d{2}$/.test(d.date || '') ? d.date : currentDate,
       food: (d.food || []).filter((f) => f && f.name).map((f) => ({
-        meal: meals.has(f.meal) ? f.meal : 'Snack', name: String(f.name),
+        name: String(f.name),
         kcal: n(f.kcal), protein: n(f.protein), carbs: n(f.carbs), fat: n(f.fat),
       })),
       gym: (d.gym || []).filter((g) => g && g.exercise).map((g) => ({
@@ -1369,12 +1367,7 @@ ul.plain input[type=checkbox] { width: 22px; height: 22px; min-height: 0; accent
     const cell = (v, d) => (v === '' ? '—' : fmt(v, d));
     const sum = (list, k) => list.reduce((a, f) => a + num(f[k]), 0);
     let rows = '';
-    for (const meal of MEALS) {
-      const m = food.filter((f) => f.meal === meal);
-      if (!m.length) continue;
-      rows += `<tr class="group"><td>${meal}</td><td class="num">${fmt(sum(m, 'kcal'))}</td><td class="num">${fmt(sum(m, 'protein'), 1)}</td><td class="num">${fmt(sum(m, 'carbs'), 1)}</td><td class="num">${fmt(sum(m, 'fat'), 1)}</td><td></td></tr>`;
-      rows += m.map((f) => `<tr><td class="name">${esc(f.name)}</td><td class="num">${cell(f.kcal)}</td><td class="num">${cell(f.protein, 1)}</td><td class="num">${cell(f.carbs, 1)}</td><td class="num">${cell(f.fat, 1)}</td><td class="num act"><button class="icon" data-pv-del="${food.indexOf(f)}" aria-label="Remove ${esc(f.name)}">✕</button></td></tr>`).join('');
-    }
+    rows += food.map((f, i) => `<tr><td class="name">${esc(f.name)}</td><td class="num">${cell(f.kcal)}</td><td class="num">${cell(f.protein, 1)}</td><td class="num">${cell(f.carbs, 1)}</td><td class="num">${cell(f.fat, 1)}</td><td class="num act"><button class="icon" data-pv-del="${i}" aria-label="Remove ${esc(f.name)}">✕</button></td></tr>`).join('');
     rows += `<tr><th>Total</th><th class="num">${fmt(sum(food, 'kcal'))}</th><th class="num">${fmt(sum(food, 'protein'), 1)}</th><th class="num">${fmt(sum(food, 'carbs'), 1)}</th><th class="num">${fmt(sum(food, 'fat'), 1)}</th><th></th></tr>`;
     const gaps = food.some((f) => f.kcal === '');
     return `<div class="table-wrap"><table><thead><tr><th>Food</th><th class="num">kcal</th><th class="num">P (g)</th><th class="num">C (g)</th><th class="num">F (g)</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`
